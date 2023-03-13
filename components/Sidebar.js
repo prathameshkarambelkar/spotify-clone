@@ -1,16 +1,32 @@
 import Image from "next/image";
+import { signOut, useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import useSpotify from "../hooks/useSpotify"
 
-export default function Sidebar() {
+ function Sidebar() {
+  const spotifyApi = useSpotify()
+  const {data: session, status}  = useSession();
+  const [playlists,setPlaylists] = useState([])
+
+  useEffect(() => {
+    if(spotifyApi.getAccessToken()){
+      spotifyApi.getUserPlaylists().then((data) => {
+        setPlaylists(data.body.items)
+      })
+    }
+  },[session,spotifyApi])
+  console.log(playlists);
+
   return (
-    <div className="p-5 text-gray-300">
-      <div className=" space-y-4 bg-black ">
+    <div className="p-5 text-gray-300 text-sm overflow-y-scroll scrollbar-hide h-screen">
+      <div className=" space-y-4 bg-black  ">
         <Image
           className="flex items-center space-x-2"
           width={100}
           height={100}
           src={"/spotify_white_logo.png"}
         />
-
+        <button onClick={() => signOut()}>Logout</button>
         <button className="flex items-center space-x-2 ">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -29,7 +45,6 @@ export default function Sidebar() {
 
           <p className="text-white">Home</p>
         </button>
-
         <button className="flex items-center space-x-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -119,15 +134,11 @@ export default function Sidebar() {
         </button>
         <hr className="border-t-2 border-white" />
         {/* {Playlist} */}
-        <p className="cursor-pointer hover:text-white">Playlist Name</p>
-        <p className="cursor-pointer hover:text-white">Playlist Name</p>
-        <p className="cursor-pointer hover:text-white">Playlist Name</p>
-        <p className="cursor-pointer hover:text-white">Playlist Name</p>
-        <p className="cursor-pointer hover:text-white">Playlist Name</p>
-        <p className="cursor-pointer hover:text-white">Playlist Name</p>
-        <p className="cursor-pointer hover:text-white">Playlist Name</p>
-        <p className="cursor-pointer hover:text-white">Playlist Name</p>
+        {playlists.map((playlist) => (
+          <p key={playlist.id}>{playlist.name}</p>
+        ))}
       </div>
     </div>
   );
 }
+export default Sidebar
